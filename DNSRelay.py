@@ -41,7 +41,7 @@ def local_resolve(data, name, ip):
         print('request name(local resolve): ' + name)
         ip = ip.split('.')                                              # get ip address
         s += [int(x) for x in ip]                                       # add ip to respond message
-        data = struct.pack('>'+'B'*len(s), *s)                          # pack respond message
+    data = struct.pack('>'+'B'*len(s), *s)                          # pack respond message
     return data
 
 if __name__ == "__main__":
@@ -60,12 +60,10 @@ if __name__ == "__main__":
         name = getName(data)
         if dict.__contains__(name):                                     # search for domain name in local config
             data = local_resolve(data, name, dict[name])                # get local resolve message
-            clientSocket.sendto(data, recvAddr)                         # send respond to local client
         else:
             print('request name(relay): ' + name)
             serverSocket.sendto(data, ('202.141.180.1', 53))            # sent request to true DNS server
             print('waiting for dns server respond...')
             data, sendAddr = serverSocket.recvfrom(4096)                # receive respond from true DNS server
-            clientSocket.sendto(data, recvAddr)                         # send data to local client
-    
+        clientSocket.sendto(data, recvAddr)                         # send data to local client
         print('query time: ' + str(time.time() - time_start) + ' s')
