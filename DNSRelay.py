@@ -39,8 +39,8 @@ def local_resolve(data, name, ip):
         s[3] = 0x03
     else:
         print('request name(local resolve): ' + name)
-        ip = ip.split('.')                                              # get ip address
-        s += [int(x) for x in ip]                                       # add ip to respond message
+    ip = ip.split('.')                                                  # get ip address
+    s += [int(x) for x in ip]                                           # add ip to respond message
     data = struct.pack('>'+'B'*len(s), *s)                              # pack respond message
     return data
 
