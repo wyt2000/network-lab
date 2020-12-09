@@ -62,7 +62,7 @@ if __name__ == "__main__":
             data = local_resolve(data, name, dict[name])                # get local resolve message
         else:
             print('request name(relay): ' + name)
-            serverSocket.sendto(data, ('202.141.180.1', 53))            # sent request to true DNS server
+            serverSocket.sendto(data, ('8.8.8.8', 53))                  # sent request to true DNS server
             print('waiting for dns server respond...')
             data, sendAddr = serverSocket.recvfrom(4096)                # receive respond from true DNS server
         clientSocket.sendto(data, recvAddr)                             # send data to local client
