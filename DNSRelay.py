@@ -23,7 +23,6 @@ def getName(data):
         if name[i] != '-' and name[i].isalnum() == False:
             name[i] = '.'
     name = ''.join(name).strip('.')
-    print(name)
     return name
 
 # create local resolve message
@@ -37,29 +36,27 @@ def local_resolve(data, name, ip):
     s += [0x00, 0x04]                                                       # set RDLENGTH = 4
 
     if ip == '0.0.0.0':                                                     # Intercept
-        print('request name(intercept): ' + name)
+        query_type = 'intercept'
         s[3] = 0x03
     else:
-        print('request name(local resolve): ' + name)
+        query_type = 'resolve'
     ip = ip.split('.')                                                      # get ip address
     s += [int(x) for x in ip]                                               # add ip to respond message
     data = struct.pack('>'+'B'*len(s), *s)                                  # pack respond message
-    return data
+    return data, query_type
 
 # handle local DNS request
 def handle_request(dict, data, recvAddr, clientSocket, serverSocket):
     time_start = time.time()
     name = getName(data)
     if dict.__contains__(name):                                             # search for domain name in local config
-        data = local_resolve(data, name, dict[name])                        # get local resolve message
+        data, query_type = local_resolve(data, name, dict[name])                        # get local resolve message
     else:
-        print('request name(relay): ' + name)
+        query_type = 'relay'
         serverSocket.sendto(data, ('114.114.114.114', 53))                  # sent request to true DNS server
-        print('waiting for dns server respond...')
         data, sendAddr = serverSocket.recvfrom(4096)                        # receive respond from true DNS server
     clientSocket.sendto(data, recvAddr)                                     # send data to local client
-    print('query time: ' + str(time.time() - time_start) + ' s')
-
+    print(f'Thread {str(threading.get_native_id()).ljust(5)}: {name.ljust(60)} {query_type.ljust(10)} \t {time.time() - time_start} s')
 
 if __name__ == "__main__":
 
@@ -70,9 +67,7 @@ if __name__ == "__main__":
 
     # handle DNS request
     while True:
-        print('waiting for dns request...')
         data, recvAddr = clientSocket.recvfrom(4096)                        # receive dns query from local client
         recvArgs = (dict, data, recvAddr, clientSocket, serverSocket)
-        #handle_request(dict, data, recvAddr, clientSocket, serverSocket)
         thread = threading.Thread(target=handle_request, args=recvArgs)
         thread.start()
