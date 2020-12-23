@@ -50,13 +50,18 @@ def handle_request(dict, data, recvAddr, clientSocket, serverSocket):
     time_start = time.time()
     name = getName(data)
     if dict.__contains__(name):                                             # search for domain name in local config
-        data, query_type = local_resolve(data, name, dict[name])                        # get local resolve message
+        data, query_type = local_resolve(data, name, dict[name])            # get local resolve message
     else:
         query_type = 'relay'
         serverSocket.sendto(data, ('114.114.114.114', 53))                  # sent request to true DNS server
-        data, sendAddr = serverSocket.recvfrom(4096)                        # receive respond from true DNS server
+        try:
+            data, sendAddr = serverSocket.recvfrom(4096)                        # receive respond from true DNS server
+        except Exception as e:
+            print('Relay Timeout!')
+            return
     clientSocket.sendto(data, recvAddr)                                     # send data to local client
-    print(f'Thread {str(threading.get_native_id()).ljust(5)}: {name.ljust(60)} {query_type.ljust(10)} \t {time.time() - time_start} s')
+    print(f'Thread {str(threading.get_native_id()).ljust(5)}: \
+    {name.ljust(60)} {query_type.ljust(10)} \t {time.time() - time_start} s')
 
 if __name__ == "__main__":
 
@@ -64,6 +69,7 @@ if __name__ == "__main__":
     clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)         # create sockets
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     clientSocket.bind(('localhost', 53))                                    # bind local DNS port
+    serverSocket.settimeout(10)
 
     # handle DNS request
     while True:
