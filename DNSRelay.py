@@ -55,8 +55,8 @@ def handle_request(dict, data, recvAddr, clientSocket, serverSocket):
         query_type = 'relay'
         serverSocket.sendto(data, ('114.114.114.114', 53))                  # sent request to true DNS server
         try:
-            data, sendAddr = serverSocket.recvfrom(4096)                        # receive respond from true DNS server
-        except Exception as e:
+            data, sendAddr = serverSocket.recvfrom(4096)                    # receive respond from true DNS server
+        except:
             print('Relay Timeout!')
             return
     clientSocket.sendto(data, recvAddr)                                     # send data to local client
@@ -73,7 +73,10 @@ if __name__ == "__main__":
 
     # handle DNS request
     while True:
-        data, recvAddr = clientSocket.recvfrom(4096)                        # receive dns query from local client
+        try:
+            data, recvAddr = clientSocket.recvfrom(4096)                    # receive dns query from local client
+        except:
+            continue
         recvArgs = (dict, data, recvAddr, clientSocket, serverSocket)
         thread = threading.Thread(target=handle_request, args=recvArgs)
         thread.start()
