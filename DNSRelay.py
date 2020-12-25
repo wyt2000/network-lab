@@ -12,6 +12,8 @@ def initConfig(filename):
         line = file.readline()
         if not line:
             break
+        if len(line) == 1:
+            continue
         ip, name = line.strip('\n').split(' ')
         dict[name] = ip
     return dict
@@ -31,7 +33,6 @@ def local_resolve(data, name, ip):
     s[2] = 0x80                                                             # set QR = 1
     s[7] = 0x01                                                             # set ANCOUNT = 1
     s += s[12:]                                                             # repeat Question
-    s[-1:-5:-1] = [0x01, 0x00, 0x01, 0x00]                                  # hide ipv6
     s += [0x00, 0x00, 0x00, 0x01]                                           # set TTL = 1
     s += [0x00, 0x04]                                                       # set RDLENGTH = 4
 
@@ -65,7 +66,7 @@ def handle_request(dict, data, recvAddr, clientSocket, serverSocket):
 
 if __name__ == "__main__":
 
-    dict = initConfig('config')                                             # get ip config
+    dict = initConfig('config2')                                             # get ip config
     clientSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)         # create sockets
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     clientSocket.bind(('localhost', 53))                                    # bind local DNS port
@@ -73,10 +74,7 @@ if __name__ == "__main__":
 
     # handle DNS request
     while True:
-        try:
-            data, recvAddr = clientSocket.recvfrom(4096)                    # receive dns query from local client
-        except:
-            continue
+        data, recvAddr = clientSocket.recvfrom(4096)                    # receive dns query from local client
         recvArgs = (dict, data, recvAddr, clientSocket, serverSocket)
         thread = threading.Thread(target=handle_request, args=recvArgs)
         thread.start()
