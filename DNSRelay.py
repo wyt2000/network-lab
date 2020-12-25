@@ -18,7 +18,7 @@ def initConfig(filename):
 
 # get domain name from DNS message
 def getName(data):
-    name = list(data.decode('utf-8', 'ignore'))[11:]
+    name = list(data.decode('utf-8', 'ignore'))[11:-4]
     for i in range(len(name)):
         if name[i] != '-' and name[i].isalnum() == False:
             name[i] = '.'
